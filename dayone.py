@@ -22,6 +22,40 @@ def GenerateICs(N,seed=42):
     masses = np.repeat(1./N,N) # make the system have unit mass
     return pos, masses, vel, softening
 
+def collapseICs(N, seed=4080):
+    np.random.seed(seed) # seed the RNG for reproducibility
+    
+    theta = np.random.uniform(0, 2*np.pi, N)
+    phi = np.random.uniform(-1, 1, N)
+    phi = np.arccos(phi)
+    dists = np.random.uniform(0, 1, N)
+    R = 1 * dists**(1/3)
+    x = R * np.cos(theta) * np.sin(phi)
+    y = R * np.sin(theta) * np.sin(phi)
+    z = R * np.cos(phi)
+    pos = np.zeros((N, 3))
+    pos[:, 0] = x; pos[:, 1] = y; pos[:, 2] = z
+    pos -= np.average(pos,axis=0) # put center of mass at the origin
+    des_vel = 0.05 * 1
+    vel_x_comp = np.random.uniform(0, des_vel, N)
+    vel_y_comp = np.random.uniform(0, des_vel - vel_x_comp, N)
+    vel_z_comp = np.sqrt(des_vel**2 - (vel_x_comp**2 + vel_y_comp**2))
+    vel = np.zeros_like(pos) # initialize at rest
+    vel[:, 0] = vel_x_comp; vel[:, 1] = vel_y_comp; vel[:, 2] = vel_z_comp
+    # vel -= np.average(vel,axis=0) # make average velocity 0
+    softening = np.repeat(0.1,N) # initialize softening to 0.1
+    masses = np.repeat(1./N,N) # make the system have unit mass
+    return pos, masses, vel, softening
+
+def diskgalICs():
+    data = np.genfromtxt('treecode/discgal.dat')
+    pos = data[:, 1:4]
+    vel = data[:, 4:7]
+    N = len(pos[:, 0])
+    softening = np.repeat(0.1,N) # initialize softening to 0.1
+    masses = np.repeat(1./N,N) # make the system have unit mass
+    return pos, masses, vel, softening
+
 def TotalEnergy(pos, masses, vel, softening):
     kinetic = 0.5 * np.sum(masses[:,None] * vel**2)
     potential = 0.5 * np.sum(masses * Potential(pos,masses,softening,parallel=True))
@@ -37,14 +71,17 @@ def leapfrog_kdk_timestep(dt, pos, masses, softening, vel, accel):
     # then another half-step kick
     vel[:] = vel + 0.5 * dt * accel
 
-N = 1000
-pos, masses, vel, softening = GenerateICs(N) # initialize initial condition with 10k particles
+N = int(1e3)
+# pos, masses, vel, softening = GenerateICs(N) # initialize initial condition with 10k particles
+# pos, masses, vel, softening = collapseICs(N)
+pos, masses, vel, softening = diskgalICs()
+N = len(pos[:, 0])
 
 accel = Accel(pos,masses,softening,parallel=True) # initialize acceleration
 
 t = 0 # initial time
 dt = 0.03 # adjust this to control integration error
-Tmax = 50 # final/max time
+Tmax = 10 # final/max time
 nt = int((Tmax - t) / dt) + 1
 
 energies = [] #energies
@@ -92,6 +129,7 @@ ani = animation.FuncAnimation(fig, animate, frames=nt, interval=int(1000/fps))
 
 plt.show()
 
-ani.save(f'test.gif', writer='pillow')
+# ani.save(f'Uniform Collapse.gif', writer='pillow')
+ani.save(f'Diskgal.gif', writer='pillow')
 
-plt.close('all')
+# plt.close('all')

@@ -1,0 +1,3 @@
+for i in snap*.dat ; do echo $i | sed "s/snap_t//g ; s/.dat//g" > data ; cat $i >> data ; python plotsnap.py ; mv snap.png $i.png ; done
+convert snap*.png animation.gif
+rm data snap*.png
