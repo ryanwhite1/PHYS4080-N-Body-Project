@@ -47,6 +47,7 @@ def collapseICs(N, vel_prop, seed=4080):
     xprop *= mult; yprop *= mult; zprop *= mult
     vel = np.zeros_like(pos) # initialize at rest
     vel[:, 0] = xprop; vel[:, 1] = yprop; vel[:, 2] = zprop
+    vel -= np.average(vel, axis=0) # make average velocity 0
     
     softening = np.repeat(0.2, N) # initialize softening to 0.1\
     masses = np.repeat(1./N, N) # make the system have unit mass
@@ -107,7 +108,7 @@ def leapfrog_kdk_timestep(dt, pos, masses, softening, vel, accel):
 
 N = int(4096)
 # pos, masses, vel, softening = GenerateICs(N) # initialize initial condition with 10k particles
-pos, masses, vel, softening = collapseICs(N, 0.05, seed=3080)
+pos, masses, vel, softening = collapseICs(N, 1, seed=3080)
 # pos, masses, vel, softening = diskgalICs()
 # pos, masses, vel, softening, colours, scales = DLGalICs('Sa')
 N = len(pos[:, 0])
@@ -173,7 +174,8 @@ ani = animation.FuncAnimation(fig, animate, frames=nt, interval=int(1000/fps), c
 
 # plt.show()
 
-ani.save(f'Uniform Collapse.gif', writer='pillow')
+# ani.save(f'Uniform Collapse.gif', writer='pillow')
+ani.save(f'Equilibrium.gif', writer='pillow')
 # ani.save(f'Diskgal.gif', writer='pillow')
 # ani.save(f'GALAXY.gif', writer='pillow')
 
