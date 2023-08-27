@@ -21,7 +21,7 @@ pos1, masses1, vel1, softening1 = nbody.diskgalICs()
 N1 = len(pos1[:, 0])
 N = 2 * N1
 
-colours = np.append(['lightyellow' for _ in range(N1)],['paleturquoise' for _ in range(N1)])
+colours = np.append(['lightcoral' for _ in range(N1)],['paleturquoise' for _ in range(N1)])
 
 rel_vels = [4, 2.25, 0.5]
 for rel_vel in rel_vels:
@@ -40,5 +40,5 @@ for rel_vel in rel_vels:
     
     positions = nbody.perform_sim(Tmax, dt, pos, masses, vel, softening)
     
-    nbody.animate_sim(positions, f'GalaxyCollision-{rel_vel}v_e', 12, colours=colours)
+    nbody.animate_sim(positions, f'GalaxyCollision-{rel_vel}v_e', 8, colours=colours)
 
