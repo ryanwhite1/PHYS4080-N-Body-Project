@@ -5,7 +5,6 @@ Created on Sun Aug 27 17:34:23 2023
 @author: ryanw
 """
 
-import pytreegrav as ptg
 import numpy as np
 import matplotlib.pyplot as plt
 import CommonTools as nbody
@@ -17,14 +16,18 @@ plt.rcParams['mathtext.fontset']='cm'
 Tmax = 100
 dt = 0.1
 nt = int((Tmax - 0) / dt) + 1
+times = np.linspace(0, Tmax, nt)
+
 pos1, masses1, vel1, softening1 = nbody.diskgalICs()
 N1 = len(pos1[:, 0])
 N = 2 * N1
 
 colours = np.append(['lightcoral' for _ in range(N1)],['paleturquoise' for _ in range(N1)])
 
+all_pos = np.zeros((2 * N1, 3, nt, 3))
+
 rel_vels = [4, 2.25, 0.5]
-for rel_vel in rel_vels:
+for i, rel_vel in enumerate(rel_vels):
     pos = np.append(pos1, pos1, axis=0)
     masses = np.append(masses1, masses1) / 2    # divide by two so the total mass of the system is still =1
     vel = np.append(vel1, vel1, axis=0)
@@ -40,5 +43,52 @@ for rel_vel in rel_vels:
     
     positions = nbody.perform_sim(Tmax, dt, pos, masses, vel, softening)
     
+    all_pos[:, :, :, i] = positions
+    
     nbody.animate_sim(positions, f'GalaxyCollision-{rel_vel}v_e', 8, colours=colours)
+    
+    # we want to plot the radial extent of stellar populations of one galaxy in the final merger case
+    if i == len(rel_vels) - 1:
+        radii = np.zeros((nt, 3))
+        for i in range(nt):
+            radii[i, 0] = nbody.prop_sphere(0.1, positions[:N1, :, i])
+            radii[i, 1] = nbody.prop_sphere(0.2, positions[:N1, :, i])
+            radii[i, 2] = nbody.prop_sphere(0.5, positions[:N1, :, i])
+          
+
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(times, radii[:, 0], label='10\% Sphere')
+        ax.plot(times, radii[:, 1], label='20\% Sphere')
+        ax.plot(times, radii[:, 2], label='50\% Sphere')
+        ax.legend()
+        ax.set_yscale('log')
+        ax.set_xlim(0, Tmax)
+        ax.set_xlabel("Time ($N$-body units)")
+        ax.set_ylabel("Radius ($N$-body units)")
+
+        fig.savefig('GalaxyCollision-StarRadii.png', dpi=400, bbox_inches='tight')
+        fig.savefig('GalaxyCollision-StarRadii.pdf', dpi=400, bbox_inches='tight')
+    
+
+# now to plot the center of mass separations of the galaxies over time
+com_separations = np.zeros((nt, 3))
+
+for i in range(nt):
+    com_separations[i, 0] = nbody.com_sep(all_pos[:N1, :, i, 0], all_pos[N1:, :, i, 0])
+    com_separations[i, 1] = nbody.com_sep(all_pos[:N1, :, i, 1], all_pos[N1:, :, i, 1])
+    com_separations[i, 2] = nbody.com_sep(all_pos[:N1, :, i, 2], all_pos[N1:, :, i, 2])
+
+fig, ax = plt.subplots(figsize=(8, 5))
+
+for i in range(3):
+    ax.plot(times, com_separations[:, i], label=f'$v_i = {rel_vels[i]}v_e$')
+ax.legend()
+ax.set_xlabel("Time ($N$-body units)")
+ax.set_ylabel("CoM Separation ($N$-body units)")
+ax.set_yscale('log')
+ax.set_ylim(ymax=100)
+fig.savefig("GalaxyCollision-CoMSep.png", dpi=400, bbox_inches='tight')
+fig.savefig("GalaxyCollision-CoMSep.pdf", dpi=400, bbox_inches='tight')
+    
+
 

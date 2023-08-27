@@ -110,8 +110,8 @@ def animate_sim(positions, filename, length, colours=[]):
         ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
         return fig,
 
-    ani = animation.FuncAnimation(fig, animate, frames=nt, interval=max(int(1000/fps), 1), cache_frame_data=False)
-    ani.save(f"{filename}.gif", writer='pillow')
+    ani = animation.FuncAnimation(fig, animate, frames=nt, interval=1, cache_frame_data=False)
+    ani.save(f"{filename}.gif", writer='pillow', fps=fps)
     plt.close('all')
 
 def perform_sim(Tmax, dt, pos, masses, vel, softening):
@@ -191,6 +191,17 @@ def free_fall_time(radius, mass):
     G = 6.6743 * 10**-11
     Myr_sec = 31536000000000.0
     return ((np.pi / 2) * R**(3/2) / np.sqrt(2 * G * M)) / Myr_sec
+
+def com_sep(pos1, pos2):
+    '''
+    Parameters
+    ----------
+    pos1, pos2 : (Nx3) np.array
+    '''
+    com1 = np.mean(pos1, axis=1)
+    com2 = np.mean(pos2, axis=1)
+    sep = np.sqrt((com1[0] - com2[0])**2 + (com1[1] - com2[1])**2 + (com1[2] - com2[2])**2)
+    return sep
 
 
 

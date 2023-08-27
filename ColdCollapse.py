@@ -5,7 +5,6 @@ Created on Wed Aug 23 15:00:00 2023
 @author: ryanw
 """
 
-import pytreegrav as ptg
 import numpy as np
 import matplotlib.pyplot as plt
 import CommonTools as nbody
@@ -33,7 +32,7 @@ colours = cmap(norm_radii)
 
 nbody.animate_sim(positions, 'ColdCollapse', 15, colours=colours)
 
-radii = np.zeros((nt, 6))
+radii = np.zeros((nt, 4))
 for i in range(nt):
     radii[i, 0] = nbody.prop_sphere(0.1, positions[:, :, i])
     radii[i, 1] = nbody.prop_sphere(0.2, positions[:, :, i])
