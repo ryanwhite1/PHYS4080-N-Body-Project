@@ -9,6 +9,7 @@ import pytreegrav as ptg
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import animation
+import time
 
 def collapseICs(N, vel_prop, seed=4080):
     ''' Initial conditions for a uniform collapse of N particles with initial velocity of vel_prop of the equilibrium velocity.
@@ -60,6 +61,8 @@ def TotalEnergy(pos, masses, vel, softening):
     return kinetic + potential
 
 def leapfrog_kdk_timestep(dt, pos, masses, softening, vel, accel):
+    '''
+    '''
     # first a half-step kick
     vel[:] = vel + 0.5 * dt * accel # note that you must slice arrays to modify them in place in the function!
     # then full-step drift
@@ -69,8 +72,14 @@ def leapfrog_kdk_timestep(dt, pos, masses, softening, vel, accel):
     # then another half-step kick
     vel[:] = vel + 0.5 * dt * accel
     
-def animate_sim(positions, filename, length):
-    '''
+def animate_sim(positions, filename, length, colours=False):
+    ''' 
+    positions : (N x 3 x nt) ndarray
+        Particle position in xyz space for each of the N particles at each of the nt time steps. 
+    filename : str
+        The desired filename, to be saved as 'filename.gif'
+    length : float
+        Desired length (in seconds) of the gif
     '''
     fig = plt.figure(figsize=(12, 12))
     ax = fig.add_subplot(projection='3d')
@@ -83,12 +92,17 @@ def animate_sim(positions, filename, length):
 
     limmin, limmax = min([xmin, ymin, zmin]), max([xmax, ymax, zmax])
     ax.set_facecolor('k')
+    if colours:
+        radii = np.sqrt(positions[:, 0, 0]**2 + positions[:, 1, 0]**2 + positions[:, 2, 0]**2)
     def animate(i):
         if i%20 == 0:
             print(f"{i} / {nt}")
         ax.clear()
-        # ax.scatter(positions[:, 0, i], positions[:, 1, i], positions[:, 2, i], s=scales, marker='.', c=colours)
-        ax.scatter(positions[:, 0, i], positions[:, 1, i], positions[:, 2, i], s=1, marker='.', c='w')
+        if colours:
+            ax.scatter(positions[:, 0, i], positions[:, 1, i], positions[:, 2, i], s=1, marker='.', 
+                       c=radii, cmap='autumn')
+        else:
+            ax.scatter(positions[:, 0, i], positions[:, 1, i], positions[:, 2, i], s=1, marker='.', c='w')
         ax.set_xlim(limmin, limmax); ax.set_ylim(limmin, limmax); ax.set_zlim(limmin, limmax)
         
         ax.grid(False)
@@ -101,6 +115,21 @@ def animate_sim(positions, filename, length):
     ani.save(f"{filename}.gif", writer='pillow')
 
 def perform_sim(Tmax, dt, pos, masses, vel, softening):
+    ''' Performs an nbody sim from t=0 to t=Tmax [in steps of dt] given particles with parameters
+    pos : (N x 3) ndarray
+        Positions of N particles in xyz coordinates
+    masses : (N x 1) array
+        Mass of each particle
+    vel : (N x 3) ndarray
+        Velocities of N particles in xyz components
+    softening : (N x 1) array
+        Softening coefficient of each particle
+    Returns
+    -------
+    positions : (N x 3 x nt) ndarray
+        Particle position in xyz space for each of the N particles at each of the nt time steps. 
+    '''
+    t1 = time.time()
     N = len(pos[:, 0])
     accel = ptg.Accel(pos, masses, softening, parallel=True) # initialize acceleration
 
@@ -108,7 +137,6 @@ def perform_sim(Tmax, dt, pos, masses, vel, softening):
     nt = int((Tmax - t) / dt) + 1
 
     energies = [] #energies
-    r50s = [] #half-mass radii
     ts = [] # times
 
     positions = np.zeros((N, 3, nt))
@@ -116,7 +144,6 @@ def perform_sim(Tmax, dt, pos, masses, vel, softening):
     
     i = 0
     while t <= Tmax: # actual simulation loop - this may take a couple minutes to run
-        r50s.append(np.median(np.sum((pos - np.median(pos, axis=0))**2, axis=1)**0.5))
         energies.append(TotalEnergy(pos, masses, vel, softening))
         ts.append(t)
         
@@ -124,9 +151,46 @@ def perform_sim(Tmax, dt, pos, masses, vel, softening):
         positions[:, :, i] = pos
         t += dt
         i += 1
-    print("Simulation complete! Relative energy error: %g"%(np.abs((energies[0]-energies[-1])/energies[0])))
+    t2 = time.time()
+    print(f"Simulation complete in {round(t2 - t1, 3)}s! Relative energy error: {(np.abs((energies[0]-energies[-1])/energies[0]))}")
     return positions
     
+def prop_sphere(prop, positions):
+    ''' Finds the radius of the sphere containing `prop` * 100% of the same mass particles.
+    '''
+    return np.percentile(np.sum((positions - np.median(positions, axis=0))**2, axis=1)**0.5, prop * 100)
+
+def time_convert(time, M, R):
+    ''' Converts from n-body time to real time (in units of Myr).
+    Parameters
+    ----------
+    time : float/array
+        N-body times
+    M : float
+        Mass of the units in solar masses
+    R : float
+        Radius of the system in pc
+    '''
+    mass = M * 1.988 * 10**30
+    radius = R * 3.086 * 10**16
+    G = 6.6743 * 10**-11
+    Myr_sec = 31536000000000.0
+    return time * np.sqrt(radius**3 / (mass * G)) / Myr_sec
+
+def free_fall_time(radius, mass):
+    ''' Returns free fall time in Myr.
+    Parameters
+    ----------
+    M : float
+        Mass of the units in solar masses
+    R : float
+        Radius of the system in pc
+    '''
+    M = mass * 1.988 * 10**30
+    R = radius * 3.086 * 10**16
+    G = 6.6743 * 10**-11
+    Myr_sec = 31536000000000.0
+    return ((np.pi / 2) * R**(3/2) / np.sqrt(2 * G * M)) / Myr_sec
 
 
 
