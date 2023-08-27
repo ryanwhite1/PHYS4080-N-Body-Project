@@ -9,6 +9,7 @@ import pytreegrav as ptg
 import numpy as np
 import matplotlib.pyplot as plt
 import CommonTools as nbody
+import matplotlib
 
 plt.rcParams.update({"text.usetex": True})
 plt.rcParams['font.family']='serif'
@@ -22,7 +23,15 @@ pos, masses, vel, softening = nbody.collapseICs(N, 0.05)
 
 positions = nbody.perform_sim(Tmax, dt, pos, masses, vel, softening)
 
-nbody.animate_sim(positions, 'ColdCollapse', 15, colours=True)
+# now to choose the colours for the points
+radii = np.sqrt(positions[:, 0, 0]**2 + positions[:, 1, 0]**2 + positions[:, 2, 0]**2)
+norm = matplotlib.colors.Normalize(vmin=min(radii), vmax=max(radii))
+norm_radii = norm(radii)
+cmap = matplotlib.colormaps['autumn']
+colours = cmap(norm_radii)
+
+
+nbody.animate_sim(positions, 'ColdCollapse', 15, colours=colours)
 
 radii = np.zeros((nt, 6))
 for i in range(nt):

@@ -72,7 +72,7 @@ def leapfrog_kdk_timestep(dt, pos, masses, softening, vel, accel):
     # then another half-step kick
     vel[:] = vel + 0.5 * dt * accel
     
-def animate_sim(positions, filename, length, colours=False):
+def animate_sim(positions, filename, length, colours=[]):
     ''' 
     positions : (N x 3 x nt) ndarray
         Particle position in xyz space for each of the N particles at each of the nt time steps. 
@@ -92,15 +92,14 @@ def animate_sim(positions, filename, length, colours=False):
 
     limmin, limmax = min([xmin, ymin, zmin]), max([xmax, ymax, zmax])
     ax.set_facecolor('k')
-    if colours:
-        radii = np.sqrt(positions[:, 0, 0]**2 + positions[:, 1, 0]**2 + positions[:, 2, 0]**2)
+    
     def animate(i):
         if i%20 == 0:
             print(f"{i} / {nt}")
         ax.clear()
-        if colours:
+        if len(colours) != 0:
             ax.scatter(positions[:, 0, i], positions[:, 1, i], positions[:, 2, i], s=1, marker='.', 
-                       c=radii, cmap='autumn')
+                       c=colours)
         else:
             ax.scatter(positions[:, 0, i], positions[:, 1, i], positions[:, 2, i], s=1, marker='.', c='w')
         ax.set_xlim(limmin, limmax); ax.set_ylim(limmin, limmax); ax.set_zlim(limmin, limmax)
@@ -111,8 +110,9 @@ def animate_sim(positions, filename, length, colours=False):
         ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
         return fig,
 
-    ani = animation.FuncAnimation(fig, animate, frames=nt, interval=int(1000/fps), cache_frame_data=False)
+    ani = animation.FuncAnimation(fig, animate, frames=nt, interval=max(int(1000/fps), 1), cache_frame_data=False)
     ani.save(f"{filename}.gif", writer='pillow')
+    plt.close('all')
 
 def perform_sim(Tmax, dt, pos, masses, vel, softening):
     ''' Performs an nbody sim from t=0 to t=Tmax [in steps of dt] given particles with parameters
