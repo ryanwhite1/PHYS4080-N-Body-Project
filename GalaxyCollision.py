@@ -29,7 +29,7 @@ all_pos = np.zeros((2 * N1, 3, nt, 3))
 rel_vels = [4, 2.25, 0.5]
 for i, rel_vel in enumerate(rel_vels):
     pos = np.append(pos1, pos1, axis=0)
-    masses = np.append(masses1, masses1) / 2    # divide by two so the total mass of the system is still =1
+    masses = np.append(masses1, masses1)
     vel = np.append(vel1, vel1, axis=0)
     softening = np.append(softening1, softening1)
     
@@ -37,7 +37,7 @@ for i, rel_vel in enumerate(rel_vels):
     pos[:N1, 0] += -15; pos[N1:, 0] += 15
     pos[:N1, 1] += -2.5; pos[N1:, 1] += 2.5
     
-    escape_vel = np.sqrt(2 / np.sqrt(15**2 + 2.5**2))
+    escape_vel = np.sqrt(2 * 2 / np.sqrt(15**2 + 2.5**2))
     
     vel[:N1, 0] += (rel_vel / 2) * escape_vel; vel[N1:, 0] += - (rel_vel / 2) * escape_vel
     
@@ -71,12 +71,12 @@ for i, rel_vel in enumerate(rel_vels):
     
 
 # now to plot the center of mass separations of the galaxies over time
-com_separations = np.zeros((nt, 3))
+com_separations = np.zeros((nt, len(rel_vels)))
 
 for i in range(nt):
-    com_separations[i, 0] = nbody.com_sep(all_pos[:N1, :, i, 0], all_pos[N1:, :, i, 0])
-    com_separations[i, 1] = nbody.com_sep(all_pos[:N1, :, i, 1], all_pos[N1:, :, i, 1])
-    com_separations[i, 2] = nbody.com_sep(all_pos[:N1, :, i, 2], all_pos[N1:, :, i, 2])
+    for j in range(len(rel_vels)):
+        com_separations[i, j] = nbody.com_sep(all_pos[:N1, :, i, j], all_pos[N1:, :, i, j])
+    
 
 fig, ax = plt.subplots(figsize=(8, 5))
 

@@ -136,16 +136,14 @@ def perform_sim(Tmax, dt, pos, masses, vel, softening):
     t = 0 # initial time
     nt = int((Tmax - t) / dt) + 1
 
-    energies = [] #energies
-    ts = [] # times
+    energies = np.zeros(nt)
 
     positions = np.zeros((N, 3, nt))
     positions[:, :, 0] = pos
     
     i = 0
     while t <= Tmax: # actual simulation loop - this may take a couple minutes to run
-        energies.append(TotalEnergy(pos, masses, vel, softening))
-        ts.append(t)
+        energies[i] = TotalEnergy(pos, masses, vel, softening)
         
         leapfrog_kdk_timestep(dt, pos, masses, softening, vel, accel)
         positions[:, :, i] = pos
@@ -200,7 +198,7 @@ def com_sep(pos1, pos2):
     '''
     com1 = np.mean(pos1, axis=1)
     com2 = np.mean(pos2, axis=1)
-    sep = np.sqrt((com1[0] - com2[0])**2 + (com1[1] - com2[1])**2 + (com1[2] - com2[2])**2)
+    sep = np.linalg.norm(com1 - com2)
     return sep
 
 
