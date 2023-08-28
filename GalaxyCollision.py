@@ -14,7 +14,7 @@ plt.rcParams['font.family']='serif'
 plt.rcParams['mathtext.fontset']='cm'
 
 Tmax = 100
-dt = 0.1
+dt = 0.05
 nt = int((Tmax - 0) / dt) + 1
 times = np.linspace(0, Tmax, nt)
 
@@ -66,8 +66,8 @@ for i, rel_vel in enumerate(rel_vels):
         ax.set_xlabel("Time ($N$-body units)")
         ax.set_ylabel("Radius ($N$-body units)")
 
-        fig.savefig('GalaxyCollision-StarRadii.png', dpi=400, bbox_inches='tight')
-        fig.savefig('GalaxyCollision-StarRadii.pdf', dpi=400, bbox_inches='tight')
+        fig.savefig(f'GalaxyCollision-{rel_vel}v_e-StarRadii.png', dpi=400, bbox_inches='tight')
+        fig.savefig(f'GalaxyCollision-{rel_vel}v_e-StarRadii.pdf', dpi=400, bbox_inches='tight')
     
 
 # now to plot the center of mass separations of the galaxies over time
@@ -86,7 +86,6 @@ ax.legend()
 ax.set_xlabel("Time ($N$-body units)")
 ax.set_ylabel("CoM Separation ($N$-body units)")
 ax.set_yscale('log')
-ax.set_ylim(ymax=100)
 fig.savefig("GalaxyCollision-CoMSep.png", dpi=400, bbox_inches='tight')
 fig.savefig("GalaxyCollision-CoMSep.pdf", dpi=400, bbox_inches='tight')
     

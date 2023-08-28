@@ -51,7 +51,7 @@ def diskgalICs():
     pos = data[:, 1:4]
     vel = data[:, 4:7]
     N = len(pos[:, 0])
-    softening = np.repeat(0.1, N) # initialize softening to 0.1
+    softening = np.repeat(0.15, N) # initialize softening to 0.1
     masses = np.repeat(1./N, N) # make the system have unit mass
     return pos, masses, vel, softening
 
@@ -191,15 +191,14 @@ def free_fall_time(radius, mass):
     return ((np.pi / 2) * R**(3/2) / np.sqrt(2 * G * M)) / Myr_sec
 
 def com_sep(pos1, pos2):
-    '''
+    ''' Center of mass separation.
     Parameters
     ----------
     pos1, pos2 : (Nx3) np.array
     '''
-    com1 = np.mean(pos1, axis=1)
-    com2 = np.mean(pos2, axis=1)
-    sep = np.linalg.norm(com1 - com2)
-    return sep
+    com1 = np.mean(pos1, axis=0)
+    com2 = np.mean(pos2, axis=0)
+    return np.linalg.norm(com1 - com2)
 
 
 
