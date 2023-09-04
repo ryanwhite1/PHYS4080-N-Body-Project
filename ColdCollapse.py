@@ -18,8 +18,10 @@ N = 4096
 Tmax = 5
 dt = 0.02
 nt = int((Tmax - 0) / dt) + 1
-pos, masses, vel, softening = nbody.collapseICs(N, 0.05)
+times = np.linspace(0, Tmax, nt)
 
+### lets first plot the equilibrium condition for the halo
+pos, masses, vel, softening = nbody.collapseICs(N, 1)
 positions = nbody.perform_sim(Tmax, dt, pos, masses, vel, softening)
 
 # now to choose the colours for the points
@@ -29,9 +31,25 @@ norm_radii = norm(radii)
 cmap = matplotlib.colormaps['autumn']
 colours = cmap(norm_radii)
 
+nbody.animate_sim(positions, 'Equilibrium', 12, colours=colours, every=1, times=[True, times])
 
-nbody.animate_sim(positions, 'ColdCollapse', 15, colours=colours)
 
+### now lets plot the cold collapse
+pos, masses, vel, softening = nbody.collapseICs(N, 0.05)
+positions = nbody.perform_sim(Tmax, dt, pos, masses, vel, softening)
+
+# now to choose the colours for the points
+radii = np.sqrt(positions[:, 0, 0]**2 + positions[:, 1, 0]**2 + positions[:, 2, 0]**2)
+norm = matplotlib.colors.Normalize(vmin=min(radii), vmax=max(radii))
+norm_radii = norm(radii)
+cmap = matplotlib.colormaps['autumn']
+colours = cmap(norm_radii)
+
+nbody.animate_sim(positions, 'ColdCollapse', 12, colours=colours, every=1, times=[True, times])
+
+
+### now we can start plotting graphs of the behaviour due to the cold collapse
+# first lets get the 10, 20, 50, and 90% spheres of the particles
 radii = np.zeros((nt, 4))
 for i in range(nt):
     radii[i, 0] = nbody.prop_sphere(0.1, positions[:, :, i])
@@ -39,8 +57,8 @@ for i in range(nt):
     radii[i, 2] = nbody.prop_sphere(0.5, positions[:, :, i])
     radii[i, 3] = nbody.prop_sphere(0.9, positions[:, :, i])
   
-times = np.linspace(0, Tmax, nt)
 
+# and now lets plot these radii of the 10, etc % spheres over time
 fig, ax = plt.subplots(figsize=(8, 5))
 ax.axvline(np.pi / (2 * np.sqrt(2)), c='k', ls='--', label='$t_{ff}$')
 ax.plot(times, radii[:, 0], label='10\% Sphere')
@@ -77,5 +95,5 @@ ax.set_ylabel("Radius (kpc)")
 fig.savefig('ColdCollapse-MWHalo.png', dpi=400, bbox_inches='tight')
 fig.savefig('ColdCollapse-MWHalo.pdf', dpi=400, bbox_inches='tight')
 
-
+plt.close('all')
 

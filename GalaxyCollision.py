@@ -22,11 +22,11 @@ pos1, masses1, vel1, softening1 = nbody.diskgalICs()
 N1 = len(pos1[:, 0])
 N = 2 * N1
 
-colours = np.append(['lightcoral' for _ in range(N1)],['paleturquoise' for _ in range(N1)])
+colours = np.append(['lightcoral'] * N1, ['paleturquoise'] * N1)
 
 all_pos = np.zeros((2 * N1, 3, nt, 3))
 
-rel_vels = [4, 2.25, 0.5]
+rel_vels = [4, 2.25, 1.25, 0.5]
 for i, rel_vel in enumerate(rel_vels):
     pos = np.append(pos1, pos1, axis=0)
     masses = np.append(masses1, masses1)
@@ -45,10 +45,10 @@ for i, rel_vel in enumerate(rel_vels):
     
     all_pos[:, :, :, i] = positions
     
-    nbody.animate_sim(positions, f'GalaxyCollision-{rel_vel}v_e', 8, colours=colours)
+    nbody.animate_sim(positions, f'GalaxyCollision-{rel_vel}v_e', 10, colours=colours, every=3, times=[True, times])
     
     # we want to plot the radial extent of stellar populations of one galaxy in the final merger case
-    if i == len(rel_vels) - 1:
+    if rel_vel == 0.5:
         radii = np.zeros((nt, 3))
         for i in range(nt):
             radii[i, 0] = nbody.prop_sphere(0.1, positions[:N1, :, i])

@@ -72,30 +72,44 @@ def leapfrog_kdk_timestep(dt, pos, masses, softening, vel, accel):
     # then another half-step kick
     vel[:] = vel + 0.5 * dt * accel
     
-def animate_sim(positions, filename, length, colours=[]):
-    ''' 
+def animate_sim(positions, filename, length, colours=[], every=1, times=[False]):
+    ''' Animates the positions of N points in 3D space for nt timesteps against a black background, and saves it too!
+    Parameters
+    ----------
     positions : (N x 3 x nt) ndarray
         Particle position in xyz space for each of the N particles at each of the nt time steps. 
     filename : str
         The desired filename, to be saved as 'filename.gif'
     length : float
         Desired length (in seconds) of the gif
+    colours : Nx1 list/array (optional)
+        The (order dependent) colours to plot each of the N data points
+    every : int
+        Will plot every n frames in the animation. every=1 corresponds to plotting each frame, every=2 each second frame, etc.
+    times : list
+        Either 1 element list (containing just False) if we don't want a little timer in the top right, or, 
+        a 2 element list (the first being True) with the second element containing an nt x 1 array of times. 
     '''
-    fig = plt.figure(figsize=(12, 12))
-    ax = fig.add_subplot(projection='3d')
+    fig = plt.figure(figsize=(12, 12), frameon=False)   # we want no frame so that it's a clean black animation
+    ax = fig.add_subplot(projection='3d')   # 3d axes
+    fig.subplots_adjust(left=0, bottom=0, right=1, top=1, wspace=None, hspace=None) # removes (most of the) blank border around the plot
+    # now do an initial scatter so we can get the axis limits to use through the animation
     ax.scatter(positions[:, 0, 0], positions[:, 1, 0], positions[:, 2, 0], s=1, marker='.')
-    nt = len(positions[0, 0, :]) # number of timesteps
-    fps = nt / length
     xmin, xmax = min(positions[:, 0, 0]), max(positions[:, 0, 0])
     ymin, ymax = min(positions[:, 1, 0]), max(positions[:, 1, 0])
     zmin, zmax = min(positions[:, 2, 0]), max(positions[:, 2, 0])
-
-    limmin, limmax = min([xmin, ymin, zmin]), max([xmax, ymax, zmax])
-    ax.set_facecolor('k')
+    limmin, limmax = min([xmin, ymin, zmin]), max([xmax, ymax, zmax])   # get the minimum and maximums for the axis limits
+    
+    # now calculate some parameters for the animation frames and timing
+    nt = len(positions[0, 0, :]) # number of timesteps
+    frames = np.arange(0, nt, every)    # iterable for the animation function. Chooses which frames (indices) to animate.
+    fps = len(frames) / length  # fps for the final animation
+    
+    ax.set_facecolor('k')   # black background, since space is blach duh
     
     def animate(i):
-        if i%20 == 0:
-            print(f"{i} / {nt}")
+        if (i // every)%20 == 0:
+            print(f"{i // every} / {len(frames)}")
         ax.clear()
         if len(colours) != 0:
             ax.scatter(positions[:, 0, i], positions[:, 1, i], positions[:, 2, i], s=1, marker='.', 
@@ -103,6 +117,8 @@ def animate_sim(positions, filename, length, colours=[]):
         else:
             ax.scatter(positions[:, 0, i], positions[:, 1, i], positions[:, 2, i], s=1, marker='.', c='w')
         ax.set_xlim(limmin, limmax); ax.set_ylim(limmin, limmax); ax.set_zlim(limmin, limmax)
+        if times[0]:    # plot the current time in the corner if we want to!
+            ax.text(0.7 * limmax, 0.7 * limmax, 1.85 * limmax, "$T = " + str(round(times[1][i], 1)) + "$", fontsize=24, color='w')
         
         ax.grid(False)
         ax.xaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
@@ -110,7 +126,7 @@ def animate_sim(positions, filename, length, colours=[]):
         ax.zaxis.set_pane_color((1.0, 1.0, 1.0, 0.0))
         return fig,
 
-    ani = animation.FuncAnimation(fig, animate, frames=nt, interval=1, cache_frame_data=False)
+    ani = animation.FuncAnimation(fig, animate, frames=frames, interval=1, cache_frame_data=False, blit=True)
     ani.save(f"{filename}.gif", writer='pillow', fps=fps)
     plt.close('all')
 
