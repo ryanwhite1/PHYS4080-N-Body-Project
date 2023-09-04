@@ -1,3 +1,0 @@
-for i in snap*.dat ; do echo $i | sed "s/snap_t//g ; s/.dat//g" > data ; cat $i >> data ; gnuplot "plotsnap.gnu" > $i.gif ; done
-convert snap*.gif animation.gif
-rm data snap*.gif
