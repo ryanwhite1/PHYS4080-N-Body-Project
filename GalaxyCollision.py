@@ -24,9 +24,11 @@ N = 2 * N1
 
 colours = np.append(['lightcoral'] * N1, ['paleturquoise'] * N1)
 
-all_pos = np.zeros((2 * N1, 3, nt, 3))
+
 
 rel_vels = [4, 2.25, 1.25, 0.5]
+all_pos = np.zeros((2 * N1, 3, nt, len(rel_vels)))
+
 for i, rel_vel in enumerate(rel_vels):
     pos = np.append(pos1, pos1, axis=0)
     masses = np.append(masses1, masses1)
@@ -45,7 +47,7 @@ for i, rel_vel in enumerate(rel_vels):
     
     all_pos[:, :, :, i] = positions
     
-    nbody.animate_sim(positions, f'GalaxyCollision-{rel_vel}v_e', 10, colours=colours, every=3, times=[True, times])
+    nbody.animate_sim(positions, f'GalaxyCollision-{rel_vel}v_e', 30, colours=colours, every=3, times=[True, times])
     
     # we want to plot the radial extent of stellar populations of one galaxy in the final merger case
     if rel_vel == 0.5:
@@ -80,7 +82,7 @@ for i in range(nt):
 
 fig, ax = plt.subplots(figsize=(8, 5))
 
-for i in range(3):
+for i in range(len(rel_vels)):
     ax.plot(times, com_separations[:, i], label=f'$v_i = {rel_vels[i]}v_e$')
 ax.legend()
 ax.set_xlabel("Time ($N$-body units)")

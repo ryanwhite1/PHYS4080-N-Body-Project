@@ -103,7 +103,7 @@ def animate_sim(positions, filename, length, colours=[], every=1, times=[False])
     # now calculate some parameters for the animation frames and timing
     nt = len(positions[0, 0, :]) # number of timesteps
     frames = np.arange(0, nt, every)    # iterable for the animation function. Chooses which frames (indices) to animate.
-    fps = len(frames) / length  # fps for the final animation
+    fps = len(frames) // length  # fps for the final animation
     
     ax.set_facecolor('k')   # black background, since space is blach duh
     
