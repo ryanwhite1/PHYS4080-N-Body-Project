@@ -75,7 +75,7 @@ fig.savefig('ColdCollapse.png', dpi=400, bbox_inches='tight')
 fig.savefig('ColdCollapse.pdf', dpi=400, bbox_inches='tight')
 
 ### Now convert to real units for a Milky Way like halo
-MWmass = 10e12
+MWmass = 1e12
 MWrad = 100e3
 real_time = nbody.time_convert(times, MWmass, MWrad)
 real_rad = radii * MWrad / 1e3
